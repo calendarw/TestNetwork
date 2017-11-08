@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
         GetBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new MakeNetworkCall().execute("http://192.168.8.8/Mvc5/Home/Test", "Get");
+                new MakeNetworkCall().execute("http://192.168.8.8/Mvc5/Home/Test?text=test", "Get");
             }
 
         });
@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
             URL url = new URL(ServerURL);
             HttpURLConnection cc = (HttpURLConnection)
                     url.openConnection();
+            cc.setRequestProperty("Accept", "application/json");
             //set timeout for reading InputStream
             cc.setReadTimeout(5000);
             // set timeout for connection
@@ -91,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
 
             HttpURLConnection cc = (HttpURLConnection)
                     url.openConnection();
+            cc.setRequestProperty("Accept", "application/json");
             //set timeout for reading InputStream
             cc.setReadTimeout(5000);
             // set timeout for connection
@@ -114,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
 
             //if response code is 200 / OK then read Inputstream
             //HttpURLConnection.HTTP_OK is equal to 200
-            if(response == HttpURLConnection.HTTP_OK) {
+            if (response == HttpURLConnection.HTTP_OK) {
                 DataInputStream = cc.getInputStream();
             }
 
