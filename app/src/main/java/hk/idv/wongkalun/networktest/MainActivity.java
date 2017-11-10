@@ -8,6 +8,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -76,55 +80,45 @@ public class MainActivity extends AppCompatActivity {
             Log.e(LOG_TAG, "Error in GetData", e);
         }
         return DataInputStream;
-
     }
 
     InputStream ByPostMethod(String ServerURL) {
+        Connection.Response res = null;
+        Document doc = null;
+        String hidden_token = "";
+
+        try {
+            res = Jsoup.connect(ServerURL).method(Connection.Method.GET).execute();
+            doc = res.parse();
+            org.jsoup.nodes.Element el = doc.select("input[name=__RequestVerificationToken]").first();
+            hidden_token = el.attr("value");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         InputStream DataInputStream = null;
         try {
 
-            //Post parameters
-            String PostParam = "first_name=android&amp;last_name=pala";
-
-            //Preparing
-            URL url = new URL(ServerURL);
-
-            HttpURLConnection cc = (HttpURLConnection)
-                    url.openConnection();
-            cc.setRequestProperty("Accept", "application/json");
-            //set timeout for reading InputStream
-            cc.setReadTimeout(5000);
-            // set timeout for connection
-            cc.setConnectTimeout(5000);
-            //set HTTP method to POST
-            cc.setRequestMethod("POST");
-            //set it to true as we are connecting for input
-            cc.setDoInput(true);
-            //opens the communication link
-            cc.connect();
-
-            //Writing data (bytes) to the data output stream
-            DataOutputStream dos = new DataOutputStream(cc.getOutputStream());
-            dos.writeBytes(PostParam);
-            //flushes data output stream.
-            dos.flush();
-            dos.close();
+            res = Jsoup.connect(ServerURL)
+                    .header("Accept", "application/json")
+                    .cookies(res.cookies())
+                    .data("__RequestVerificationToken", hidden_token)
+                    .method(Connection.Method.POST)
+                    .ignoreContentType(true)
+                    .execute();
 
             //Getting HTTP response code
-            int response = cc.getResponseCode();
+            int response = res.statusCode();
 
             //if response code is 200 / OK then read Inputstream
             //HttpURLConnection.HTTP_OK is equal to 200
             if (response == HttpURLConnection.HTTP_OK) {
-                DataInputStream = cc.getInputStream();
+                DataInputStream = res.bodyStream();
             }
-
         } catch (Exception e) {
             Log.e(LOG_TAG, "Error in GetData", e);
         }
         return DataInputStream;
-
     }
 
     String ConvertStreamToString(InputStream stream) {
